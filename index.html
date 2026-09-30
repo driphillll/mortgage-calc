@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f8f6">
+  <title>房贷计算器</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="module" src="./src/app.js"></script>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="page-header">
+      <div class="eyebrow">MORTGAGE CALCULATOR</div>
+      <h1>房贷计算器</h1>
+      <p>算清每月还款，也看清提前还款之后的变化。</p>
+    </header>
+
+    <main>
+      <div class="top-grid">
+        <section class="card form-card" aria-labelledby="formTitle">
+          <div class="section-heading">
+            <span class="section-number">01</span>
+            <div>
+              <h2 id="formTitle">贷款条件</h2>
+              <p>带 <span class="required-mark">*</span> 的项目为必填</p>
+            </div>
+          </div>
+
+          <form id="mortgageForm" novalidate>
+            <div class="field-grid">
+              <div class="field">
+                <label for="principal">贷款金额 <span class="required-mark">*</span></label>
+                <div class="input-wrap">
+                  <input id="principal" name="principal" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="例如 1000000" required>
+                  <span class="input-suffix">元</span>
+                </div>
+              </div>
+
+              <div class="field">
+                <label for="termValue">贷款期限 <span class="required-mark">*</span></label>
+                <div class="joined-input">
+                  <input id="termValue" name="termValue" type="number" inputmode="decimal" min="0.083333" step="any" placeholder="例如 30" required>
+                  <select id="termUnit" name="termUnit" aria-label="贷款期限单位">
+                    <option value="years">年</option>
+                    <option value="months">月</option>
+                  </select>
+                </div>
+                <small class="field-help">切换单位时自动换算，期限以整月计算</small>
+              </div>
+
+              <div class="field">
+                <label for="annualRate">初始年化利率 <span class="required-mark">*</span></label>
+                <div class="input-wrap">
+                  <input id="annualRate" name="annualRate" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="例如 3.5" required>
+                  <span class="input-suffix">%</span>
+                </div>
+              </div>
+
+              <fieldset class="field method-field">
+                <legend>还款方式 <span class="required-mark">*</span></legend>
+                <div class="choice-group">
+                  <label class="choice"><input type="radio" name="repaymentMethod" value="equal-payment" checked><span>等额本息</span></label>
+                  <label class="choice"><input type="radio" name="repaymentMethod" value="equal-principal"><span>等额本金</span></label>
+                </div>
+              </fieldset>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="optional-heading">
+              <div>
+                <h3>贷款开始时间 <span class="optional-tag">选填</span></h3>
+                <p>填写后，明细将显示实际还款月份；日期可留空。</p>
+              </div>
+            </div>
+            <div class="start-date-grid">
+              <div class="field">
+                <label for="startMonth">开始年月</label>
+                <input id="startMonth" name="startMonth" type="month">
+              </div>
+              <div class="field">
+                <label for="startDay">日期 <span class="muted-label">可选</span></label>
+                <div class="input-wrap">
+                  <input id="startDay" name="startDay" type="number" inputmode="numeric" min="1" max="31" step="1" placeholder="例如 15" disabled>
+                  <span class="input-suffix">日</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-divider"></div>
+
+            <div class="optional-heading">
+              <div>
+                <h3>LPR / 利率调整 <span class="optional-tag">选填</span></h3>
+                <p>填写调整后实际执行的年化利率（含固定加点），从所选年月起生效。</p>
+              </div>
+              <button id="addRateChange" class="text-button" type="button" disabled>＋ 添加一次</button>
+            </div>
+            <p id="rateChangeHint" class="field-help prepayment-hint">请先填写贷款开始年月，再添加利率调整。</p>
+            <div id="rateChangeList" class="prepayment-list"></div>
+
+            <div class="form-divider"></div>
+
+            <div class="optional-heading prepayment-heading">
+              <div>
+                <h3>提前还款 <span class="optional-tag">选填</span></h3>
+                <p>每笔填写金额、日期和处理方式，可添加多笔。</p>
+              </div>
+              <button id="addPrepayment" class="text-button" type="button" disabled>＋ 添加一笔</button>
+            </div>
+            <p id="prepaymentHint" class="field-help prepayment-hint">请先填写贷款开始年月，再添加提前还款。</p>
+            <div id="prepaymentList" class="prepayment-list"></div>
+
+            <div id="formError" class="form-error" role="alert" hidden></div>
+            <button class="calculate-button" type="submit">计算还款计划 <span aria-hidden="true">→</span></button>
+          </form>
+        </section>
+
+        <section class="card result-card" aria-labelledby="resultTitle">
+          <div class="section-heading">
+            <span class="section-number">02</span>
+            <div>
+              <h2 id="resultTitle">计算结果</h2>
+              <p>根据输入生成逐月还款计划</p>
+            </div>
+          </div>
+
+          <div id="emptyState" class="empty-state">
+            <div class="empty-visual" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+            <h3>还款计划会显示在这里</h3>
+            <p>填写贷款条件，点击“计算还款计划”。</p>
+          </div>
+
+          <div id="resultContent" hidden aria-live="polite">
+            <div class="primary-result">
+              <span id="paymentLabel">每月月供</span>
+              <strong id="initialPayment"></strong>
+              <small>首期正常还款金额，不含提前还款</small>
+            </div>
+            <div class="stat-grid">
+              <div class="stat"><span>贷款本金</span><strong id="summaryPrincipal"></strong></div>
+              <div class="stat"><span>支付利息</span><strong id="summaryInterest"></strong></div>
+              <div class="stat"><span>还款总额</span><strong id="summaryTotal"></strong></div>
+              <div class="stat"><span>实际还款期数</span><strong id="summaryMonths"></strong></div>
+            </div>
+            <div id="savingsBlock" class="savings-block" hidden>
+              <div><span>少付利息</span><strong id="summarySavings"></strong></div>
+              <div><span>缩短期限</span><strong id="summaryMonthsSaved"></strong></div>
+            </div>
+            <div id="unusedNotice" class="notice" hidden></div>
+            <p class="result-note">采用月度计息；首期在贷款开始后的次月。利率调整从所选年月的当期计息前生效，未再次调整时沿用上一利率。提前还款在当月正常还款后扣减本金，下月起调整计划；不计算日息及违约金。</p>
+          </div>
+        </section>
+      </div>
+
+      <section id="scheduleSection" class="card schedule-card" aria-labelledby="scheduleTitle" hidden>
+        <div class="section-heading schedule-heading">
+          <span class="section-number">03</span>
+          <div>
+            <h2 id="scheduleTitle">逐月还款明细</h2>
+            <p id="scheduleCount"></p>
+          </div>
+        </div>
+        <div class="table-scroll">
+          <table>
+            <thead><tr><th scope="col">期数</th><th scope="col">还款时间</th><th scope="col" class="numeric">当期年化利率</th><th scope="col" class="numeric">本金</th><th scope="col" class="numeric">利息</th><th scope="col" class="numeric">本息合计</th><th scope="col" class="numeric">提前还款</th><th scope="col" class="numeric">剩余本金</th></tr></thead>
+            <tbody id="scheduleBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </main>
+    <footer>计算结果仅供参考，实际还款以贷款机构账单为准。</footer>
+  </div>
+
+  <template id="prepaymentTemplate">
+    <div class="prepayment-item">
+      <div class="prepayment-item-head"><strong class="prepayment-title"></strong><button type="button" class="remove-button" aria-label="删除这笔提前还款">删除</button></div>
+      <div class="prepayment-fields">
+        <div class="field"><label class="amount-label">提前还款金额 <span class="required-mark">*</span></label><div class="input-wrap"><input class="prepayment-amount" type="number" inputmode="decimal" min="0.01" step="0.01" placeholder="例如 100000"><span class="input-suffix">元</span></div></div>
+        <div class="field"><label class="date-label">提前还款日期 <span class="required-mark">*</span></label><input class="prepayment-date" type="date"></div>
+        <div class="field"><label class="mode-label">处理方式 <span class="required-mark">*</span></label><select class="prepayment-mode"><option value="">请选择</option><option value="reduce-term">降低还款周期</option><option value="reduce-payment">降低月供</option></select></div>
+      </div>
+    </div>
+  </template>
+  <template id="rateChangeTemplate">
+    <div class="prepayment-item rate-change-item">
+      <div class="prepayment-item-head"><strong class="rate-change-title"></strong><button type="button" class="remove-button" aria-label="删除这次利率调整">删除</button></div>
+      <div class="rate-change-fields">
+        <div class="field"><label class="rate-month-label">生效年月 <span class="required-mark">*</span></label><input class="rate-change-month" type="month"></div>
+        <div class="field"><label class="rate-value-label">调整后年化利率 <span class="required-mark">*</span></label><div class="input-wrap"><input class="rate-change-value" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="例如 3.2"><span class="input-suffix">%</span></div></div>
+      </div>
+    </div>
+  </template>
+</body>
+</html>
