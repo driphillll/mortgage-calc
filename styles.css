@@ -19,10 +19,12 @@ button { cursor: pointer; }
 
 .page-shell { max-width: 1240px; margin: 0 auto; padding: 46px 30px 28px; }
 
-.page-header { margin: 0 0 34px; }
+.page-header { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: center; gap: 24px; margin: 0 0 34px; }
+.header-copy, .header-ad { min-width: 0; }
+.header-ad .adsbygoogle { min-height: 90px; }
 .eyebrow { color: #678579; font-size: 11px; font-weight: 750; letter-spacing: .24em; }
 .page-header h1 { margin: 11px 0 8px; color: #193f34; font-size: clamp(30px, 3vw, 42px); letter-spacing: -.045em; line-height: 1.2; }
-.page-header p { margin: 0; color: #75857d; font-size: 14px; }
+.header-copy p { margin: 0; color: #75857d; font-size: 14px; }
 
 .top-grid { display: grid; grid-template-columns: minmax(0, 1.22fr) minmax(360px, .78fr); align-items: start; gap: 22px; }
 .card { border: 1px solid #e5ebe6; border-radius: 17px; background: #fff; box-shadow: 0 12px 36px rgba(28, 62, 48, .035); }
@@ -128,6 +130,7 @@ tbody tr.has-rate-change { box-shadow: inset 3px 0 #68ae82; }
 footer { margin-top: 24px; color: #a2aea5; font-size: 11px; text-align: center; }
 
 @media (max-width: 900px) {
+  .page-header { grid-template-columns: 1fr; }
   .top-grid { grid-template-columns: 1fr; }
   .result-card { min-height: 0; }
   .empty-state { min-height: 220px; }

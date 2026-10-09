@@ -20,7 +20,7 @@ npm test
 
 ## 广告接入
 
-主页已接入一个 Google AdSense 自适应展示广告，位于计算器下方、页脚上方。发布商 ID 为 `ca-pub-8447316258615508`，广告位 ID 为 `6451167709`。广告脚本异步加载；计算器使用本地计算模块。
+主页已接入两个 Google AdSense 自适应展示广告，电脑端均使用横向布局：顶部广告与标题各占约一半宽度，在手机端排列到标题下方；底部广告位于计算器下方、页脚上方。发布商 ID 为 `ca-pub-8447316258615508`，顶部广告位 ID 为 `2850476222`，底部广告位 ID 为 `9387040978`。广告脚本异步加载且只加载一次；计算器使用本地计算模块。
 
 部署时将 `index.html`、`styles.css` 上传到 `/data/mortgage-calc/`，将 `ads.txt` 上传到 `/var/www/html/ads.txt`（对应本项目的 Nginx 配置）。确认 `https://dclyh.com/ads.txt` 可以访问，并在 AdSense 后台完成网站验证和审核。完整步骤见 [AdSense 接入说明](docs/adsense-setup.md)。
 
