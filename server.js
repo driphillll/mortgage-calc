@@ -5,6 +5,7 @@ const files = new Map([
   ['/', ['index.html', 'text/html; charset=utf-8']],
   ['/index.html', ['index.html', 'text/html; charset=utf-8']],
   ['/styles.css', ['styles.css', 'text/css; charset=utf-8']],
+  ['/ads.txt', ['ads.txt', 'text/plain; charset=utf-8']],
   ['/src/app.js', ['src/app.js', 'text/javascript; charset=utf-8']],
   ['/src/calculator.js', ['src/calculator.js', 'text/javascript; charset=utf-8']]
 ]);
