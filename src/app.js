@@ -1,4 +1,4 @@
-import { calculateMortgage, formatTermValue, toTermMonths } from './calculator.js';
+import { calculateMortgage, estimatePaidPeriods, formatTermValue, summarizeRepayment, toTermMonths } from './calculator.js';
 
 const form = document.querySelector('#mortgageForm');
 const principal = document.querySelector('#principal');
@@ -18,7 +18,12 @@ const emptyState = document.querySelector('#emptyState');
 const resultContent = document.querySelector('#resultContent');
 const scheduleSection = document.querySelector('#scheduleSection');
 const scheduleBody = document.querySelector('#scheduleBody');
+const paidPeriods = document.querySelector('#paidPeriods');
+const resetPaidPeriods = document.querySelector('#resetPaidPeriods');
+const progressError = document.querySelector('#progressError');
+const progressAmounts = document.querySelector('#progressAmounts');
 const money = new Intl.NumberFormat('zh-CN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+let currentResult = null;
 let previousUnit = termUnit.value;
 let nextPrepaymentId = 1;
 let nextRateChangeId = 1;
@@ -34,6 +39,7 @@ function clearError() {
 }
 
 function invalidateResults() {
+  currentResult = null;
   resultContent.hidden = true;
   scheduleSection.hidden = true;
   emptyState.hidden = false;
@@ -150,6 +156,37 @@ function setText(selector, value) {
   document.querySelector(selector).textContent = value;
 }
 
+function wanTitle(amount) {
+  return `${money.format(amount / 10000)} 万元`;
+}
+
+function setMoney(selector, amount) {
+  const element = document.querySelector(selector);
+  element.textContent = `¥ ${money.format(amount)}`;
+  element.title = wanTitle(amount);
+}
+
+function renderProgress() {
+  if (!currentResult) return;
+  try {
+    if (!/^\d+$/.test(paidPeriods.value)) throw new RangeError('请输入整数的已还期数');
+    const count = Number(paidPeriods.value);
+    const summary = summarizeRepayment(currentResult.schedule, count);
+    for (const [name, amount] of Object.entries(summary)) setMoney(`#${name}`, amount);
+    const lastPaidDate = currentResult.schedule[count - 1]?.date;
+    setText('#progressThrough', `已还 ${count} 期 · 待还 ${currentResult.actualMonths - count} 期${lastPaidDate ? ` · 已计入至 ${lastPaidDate}` : ''}`);
+    paidPeriods.setAttribute('aria-invalid', 'false');
+    progressError.hidden = true;
+    progressError.textContent = '';
+    progressAmounts.hidden = false;
+  } catch (error) {
+    paidPeriods.setAttribute('aria-invalid', 'true');
+    progressError.textContent = error.message;
+    progressError.hidden = false;
+    progressAmounts.hidden = true;
+  }
+}
+
 function renderSchedule(schedule) {
   const fragment = document.createDocumentFragment();
   for (const row of schedule) {
@@ -166,10 +203,12 @@ function renderSchedule(schedule) {
       row.prepayment ? money.format(row.prepayment) : '—',
       money.format(row.remaining)
     ];
+    const amounts = [row.principal, row.interest, row.payment, row.prepayment, row.remaining];
     values.forEach((value, index) => {
       const td = document.createElement('td');
       td.textContent = value;
       if (index > 1) td.classList.add('numeric');
+      if (index >= 3 && (index !== 6 || row.prepayment > 0)) td.title = wanTitle(amounts[index - 3]);
       if (index === 2) {
         td.classList.add(row.rateChanged ? 'rate-change-cell' : 'rate-cell');
         if (row.rateChanged) {
@@ -194,14 +233,21 @@ function renderSchedule(schedule) {
 }
 
 function renderResult(input, result) {
+  currentResult = result;
   setText('#paymentLabel', input.repaymentMethod === 'equal-payment' ? '首期月供' : '首月月供');
-  setText('#initialPayment', `¥ ${money.format(result.initialPayment)}`);
-  setText('#summaryPrincipal', `¥ ${money.format(Number(input.principal))}`);
-  setText('#summaryInterest', `¥ ${money.format(result.totalInterest)}`);
-  setText('#summaryTotal', `¥ ${money.format(result.totalPayment)}`);
+  setMoney('#initialPayment', result.initialPayment);
+  setMoney('#summaryPrincipal', Number(input.principal));
+  setMoney('#summaryInterest', result.totalInterest);
+  setMoney('#summaryTotal', result.totalPayment);
   setText('#summaryMonths', `${result.actualMonths} 期`);
-  setText('#summarySavings', `¥ ${money.format(result.interestSaved)}`);
+  setMoney('#summarySavings', result.interestSaved);
   setText('#summaryMonthsSaved', `${result.monthsSaved} 个月`);
+  paidPeriods.max = String(result.actualMonths);
+  paidPeriods.value = String(estimatePaidPeriods(result.schedule));
+  resetPaidPeriods.disabled = !input.startDate;
+  setText('#paidPeriodsLimit', `/ ${result.actualMonths} 期`);
+  setText('#progressHint', `${input.startDate ? '默认按今天估算；仅填年月时按月末判断。' : '未填开始时间，默认 0 期。'}可按账单修改。金额按计划和完整期数估算，已还本金含期内提前还款。`);
+  renderProgress();
   document.querySelector('#savingsBlock').hidden = input.prepayments.length === 0;
   const unusedNotice = document.querySelector('#unusedNotice');
   const notices = [];
@@ -209,7 +255,13 @@ function renderResult(input, result) {
   if (result.unusedRateChanges.length) notices.push(`${result.unusedRateChanges.length} 次利率调整发生在实际结清之后，未作用于还款计划。`);
   unusedNotice.hidden = notices.length === 0;
   unusedNotice.textContent = notices.join(' ');
-  setText('#scheduleCount', `共 ${result.actualMonths} 期 · 金额单位：元${result.totalPrepayment ? ` · 已提前偿还 ¥ ${money.format(result.totalPrepayment)}` : ''}`);
+  setText('#scheduleCount', `共 ${result.actualMonths} 期 · 金额单位：元 · 悬停金额可查看万元`);
+  if (result.totalPrepayment) {
+    const prepaymentSummary = document.createElement('span');
+    prepaymentSummary.textContent = ` · 全期提前还款 ¥ ${money.format(result.totalPrepayment)}`;
+    prepaymentSummary.title = wanTitle(result.totalPrepayment);
+    document.querySelector('#scheduleCount').append(prepaymentSummary);
+  }
   renderSchedule(result.schedule);
   emptyState.hidden = true;
   resultContent.hidden = false;
@@ -239,6 +291,12 @@ startMonth.addEventListener('input', () => {
 
 addPrepayment.addEventListener('click', addPrepaymentRow);
 addRateChange.addEventListener('click', addRateChangeRow);
+paidPeriods.addEventListener('input', renderProgress);
+resetPaidPeriods.addEventListener('click', () => {
+  if (!currentResult) return;
+  paidPeriods.value = String(estimatePaidPeriods(currentResult.schedule));
+  renderProgress();
+});
 form.addEventListener('input', event => {
   if (event.target !== startMonth) invalidateResults();
 });
@@ -253,6 +311,7 @@ form.addEventListener('submit', event => {
     const input = readInput();
     renderResult(input, calculateMortgage(input));
   } catch (error) {
+    currentResult = null;
     resultContent.hidden = true;
     scheduleSection.hidden = true;
     emptyState.hidden = false;

@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateMortgage, formatTermValue, toTermMonths } from '../src/calculator.js';
+import { calculateMortgage, estimatePaidPeriods, formatTermValue, summarizeRepayment, toTermMonths } from '../src/calculator.js';
 
 test('零利率等额本息按分摊本金，末期结清', () => {
   const result = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment' });
@@ -187,4 +187,95 @@ test('调息记录需要完整年月与利率、贷款开始时间，且同月�
   assert.throws(() => calculateMortgage({ ...base, startDate: '2026-01', rateChanges: [{ month: '2026-02', annualRate: 4 }, { month: '2026-02', annualRate: 5 }] }), /同一个月/);
   assert.throws(() => calculateMortgage({ ...base, startDate: '2026-01', rateChanges: [{ month: '2025-12', annualRate: 4 }] }), /贷款期限内/);
   assert.throws(() => calculateMortgage({ ...base, startDate: '2026-01', rateChanges: [{ month: '2026-05', annualRate: 4 }] }), /贷款期限内/);
+});
+
+test('已还与待还按完整期数划分本金、利息和本息合计', () => {
+  const { schedule } = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 12, repaymentMethod: 'equal-principal' });
+  const cases = [
+    [0, { paidPrincipal: 0, paidInterest: 0, paidTotal: 0, remainingPrincipal: 1200, remainingInterest: 24, remainingTotal: 1224 }],
+    [1, { paidPrincipal: 400, paidInterest: 12, paidTotal: 412, remainingPrincipal: 800, remainingInterest: 12, remainingTotal: 812 }],
+    [3, { paidPrincipal: 1200, paidInterest: 24, paidTotal: 1224, remainingPrincipal: 0, remainingInterest: 0, remainingTotal: 0 }]
+  ];
+  for (const [paidPeriods, expected] of cases) {
+    assert.deepEqual(summarizeRepayment(schedule, paidPeriods), expected);
+  }
+});
+
+test('已还本金含生效的提前还款，待还本金不再重复计入', () => {
+  const { schedule } = calculateMortgage({
+    principal: 1200, termMonths: 3, annualRate: 12, repaymentMethod: 'equal-principal', startDate: '2026-01',
+    prepayments: [{ amount: 200, date: '2026-02-10', mode: 'reduce-term' }]
+  });
+  assert.deepEqual(summarizeRepayment(schedule, 1), {
+    paidPrincipal: 600, paidInterest: 12, paidTotal: 612,
+    remainingPrincipal: 600, remainingInterest: 8, remainingTotal: 608
+  });
+});
+
+test('进度汇总使用调息后利息及实际扣减的提前还款金额', () => {
+  const { schedule } = calculateMortgage({
+    principal: 1200, termMonths: 3, annualRate: 12, repaymentMethod: 'equal-principal', startDate: '2026-01',
+    rateChanges: [{ month: '2026-03', annualRate: 6 }],
+    prepayments: [
+      { amount: 100, date: '2026-02-10', mode: 'reduce-term' },
+      { amount: 10000, date: '2026-03-10', mode: 'reduce-term' },
+      { amount: 100, date: '2026-04-10', mode: 'reduce-term' }
+    ]
+  });
+  assert.deepEqual(summarizeRepayment(schedule, 1), {
+    paidPrincipal: 500, paidInterest: 12, paidTotal: 512,
+    remainingPrincipal: 700, remainingInterest: 3.5, remainingTotal: 703.5
+  });
+  assert.deepEqual(summarizeRepayment(schedule, 2), {
+    paidPrincipal: 1200, paidInterest: 15.5, paidTotal: 1215.5,
+    remainingPrincipal: 0, remainingInterest: 0, remainingTotal: 0
+  });
+});
+
+test('分位汇总不会因浮点累计而多出金额尾数', () => {
+  const { schedule } = calculateMortgage({ principal: 1200, termMonths: 2, annualRate: 12, repaymentMethod: 'equal-payment' });
+  assert.deepEqual(summarizeRepayment(schedule, 1), {
+    paidPrincipal: 597.01, paidInterest: 12, paidTotal: 609.01,
+    remainingPrincipal: 602.99, remainingInterest: 6.03, remainingTotal: 609.02
+  });
+});
+
+test('进度汇总拒绝负数、小数、空值及超过实际结清期数的已还期数', () => {
+  const { schedule } = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment' });
+  for (const invalid of [-1, 1.5, 4, NaN, Infinity, '', null, undefined, '1']) {
+    assert.throws(() => summarizeRepayment(schedule, invalid), /已还期数/);
+  }
+});
+
+test('有具体还款日期时，今天到达还款日才估算为已还', () => {
+  const { schedule } = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment', startDate: '2026-01-15' });
+  for (const [today, expected] of [
+    [new Date(2025, 11, 31, 23, 59), 0],
+    [new Date(2026, 1, 14, 23, 59), 0],
+    [new Date(2026, 1, 15, 0, 0), 1],
+    [new Date(2026, 2, 14), 1],
+    [new Date(2026, 2, 15), 2],
+    [new Date(2027, 0, 1), 3]
+  ]) {
+    assert.equal(estimatePaidPeriods(schedule, today), expected);
+  }
+});
+
+test('只填写年月时按月末估算，闰年二月的还款日也按月末处理', () => {
+  const monthly = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment', startDate: '2028-01' });
+  assert.equal(estimatePaidPeriods(monthly.schedule, new Date(2028, 1, 28)), 0);
+  assert.equal(estimatePaidPeriods(monthly.schedule, new Date(2028, 1, 29)), 1);
+  assert.equal(estimatePaidPeriods(monthly.schedule, new Date(2028, 2, 30)), 1);
+  assert.equal(estimatePaidPeriods(monthly.schedule, new Date(2028, 2, 31)), 2);
+  const dated = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment', startDate: '2028-01-31' });
+  assert.equal(estimatePaidPeriods(dated.schedule, new Date(2028, 1, 29)), 1);
+});
+
+test('未填写开始时间时不推断已还期数，但允许手动汇总', () => {
+  const { schedule } = calculateMortgage({ principal: 1200, termMonths: 3, annualRate: 0, repaymentMethod: 'equal-payment' });
+  assert.equal(estimatePaidPeriods(schedule, new Date(2026, 10, 3)), 0);
+  assert.deepEqual(summarizeRepayment(schedule, 2), {
+    paidPrincipal: 800, paidInterest: 0, paidTotal: 800,
+    remainingPrincipal: 400, remainingInterest: 0, remainingTotal: 400
+  });
 });

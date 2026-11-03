@@ -6,7 +6,7 @@
 
 按本项目准备的 Nginx 配置：
 
-1. 将更新后的 `index.html` 和 `styles.css` 上传到 `/data/mortgage-calc/`。
+1. 将 `index.html`、`styles.css`、`src/app.js` 和 `src/calculator.js` 上传到 `/data/mortgage-calc/`，保留 `src/` 子目录结构。
 2. 将项目根目录的 `ads.txt` 上传到 `/var/www/html/ads.txt`。若服务器已有此文件，保留现有条目并加入本项目的条目。
 3. 打开 `https://dclyh.com/mortgage-calc/`，确认页面和计算功能正常；检查 `https://dclyh.com/ads.txt` 返回本项目的发布商条目。
 4. 在 AdSense 后台确认网站已验证并申请审核，查看网站和 ads.txt 的状态。`<head>` 中已有真实 AdSense 加载脚本，可使用后台的广告代码验证方式，不必重复添加脚本。

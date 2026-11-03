@@ -12,7 +12,7 @@ DNS 的 A 记录负责把域名指向服务器；HTTPS 还需要可信的 TLS �
 | [default.https.conf](../deploy/nginx/default.https.conf) | 证书签发后，启用 HTTPS 和 HTTP 跳转 |
 | [reload-nginx.sh](../deploy/nginx/reload-nginx.sh) | 主机直接安装 Nginx 时，作为 Certbot 成功续期后的重载钩子 |
 
-工作目录中的原始 `default` 保留为参考。这两份配置供替换服务器实际启用的站点配置，不能把两个版本同时放进加载目录，否则会重复监听。
+配置统一维护在 [`deploy/nginx/`](../deploy/nginx/README.md)，目录说明同时列出了后续 CD 使用的公开资源清单和服务器路径。这两份配置供替换服务器实际启用的站点配置，不能把两个版本同时放进加载目录，否则会重复监听。
 
 计算器仍对应 `/data/mortgage-calc/`，不增加 SPA 路由回退；不存在的静态文件返回 404。路径 `/mortgage-calc` 统一跳转到 `/mortgage-calc/`，使相对资源地址正常解析。根目录的其他静态文件仍由 `/var/www/html` 提供，例如后续的 `/ads.txt`。
 
@@ -147,6 +147,9 @@ sudo certbot renew --dry-run --run-deploy-hooks
 ```bash
 curl -I https://dclyh.com/mortgage-calc/
 curl -I https://dclyh.com/mortgage-calc/styles.css
+curl -I https://dclyh.com/mortgage-calc/src/app.js
+curl -I https://dclyh.com/mortgage-calc/src/calculator.js
+curl -I https://dclyh.com/ads.txt
 curl -I http://dclyh.com/mortgage-calc/
 curl --fail http://dclyh.com/.well-known/acme-challenge/probe.txt
 ```

@@ -233,3 +233,42 @@ export function calculateMortgage(input) {
     initialPayment: result.schedule[0]?.payment ?? 0
   };
 }
+
+export function summarizeRepayment(schedule, paidPeriods) {
+  if (!Number.isInteger(paidPeriods) || paidPeriods < 0 || paidPeriods > schedule.length) {
+    throw new RangeError(`已还期数须为 0 至 ${schedule.length} 之间的整数`);
+  }
+  let paidPrincipal = 0;
+  let paidInterest = 0;
+  let remainingPrincipal = 0;
+  let remainingInterest = 0;
+  schedule.forEach((row, index) => {
+    const principal = Math.round(row.principal * 100) + Math.round(row.prepayment * 100);
+    const interest = Math.round(row.interest * 100);
+    if (index < paidPeriods) {
+      paidPrincipal += principal;
+      paidInterest += interest;
+    } else {
+      remainingPrincipal += principal;
+      remainingInterest += interest;
+    }
+  });
+  return {
+    paidPrincipal: toYuan(paidPrincipal),
+    paidInterest: toYuan(paidInterest),
+    paidTotal: toYuan(paidPrincipal + paidInterest),
+    remainingPrincipal: toYuan(remainingPrincipal),
+    remainingInterest: toYuan(remainingInterest),
+    remainingTotal: toYuan(remainingPrincipal + remainingInterest)
+  };
+}
+
+export function estimatePaidPeriods(schedule, today = new Date()) {
+  const todayNumber = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate();
+  return schedule.filter(row => {
+    if (!row.date) return false;
+    const { year, month, day } = parseDate(row.date, '还款日期');
+    const dueDay = day ?? new Date(Date.UTC(year, month, 0)).getUTCDate();
+    return year * 10000 + month * 100 + dueDay <= todayNumber;
+  }).length;
+}

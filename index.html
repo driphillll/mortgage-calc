@@ -157,10 +157,47 @@
             </div>
             <div class="stat-grid">
               <div class="stat"><span>贷款本金</span><strong id="summaryPrincipal"></strong></div>
-              <div class="stat"><span>支付利息</span><strong id="summaryInterest"></strong></div>
-              <div class="stat"><span>还款总额</span><strong id="summaryTotal"></strong></div>
-              <div class="stat"><span>实际还款期数</span><strong id="summaryMonths"></strong></div>
+              <div class="stat"><span>全期利息</span><strong id="summaryInterest"></strong></div>
+              <div class="stat"><span>全期本息合计</span><strong id="summaryTotal"></strong></div>
+              <div class="stat"><span>预计还款期数</span><strong id="summaryMonths"></strong></div>
             </div>
+            <section class="repayment-progress" aria-labelledby="progressTitle">
+              <div class="progress-heading">
+                <h3 id="progressTitle">还款进度</h3>
+                <button id="resetPaidPeriods" class="text-button" type="button">按今天估算</button>
+              </div>
+              <div class="progress-control field">
+                <label for="paidPeriods">已还期数</label>
+                <div class="progress-input">
+                  <input id="paidPeriods" type="number" inputmode="numeric" min="0" step="1" aria-describedby="progressHint progressError">
+                  <span id="paidPeriodsLimit"></span>
+                </div>
+              </div>
+              <p id="progressHint" class="field-help"></p>
+              <p id="progressError" class="form-error" role="alert" hidden></p>
+              <div id="progressAmounts">
+                <p id="progressThrough" class="progress-through"></p>
+                <div class="repayment-grid">
+                  <div class="repayment-group">
+                    <h4>已经归还</h4>
+                    <dl>
+                      <div><dt>已还本金</dt><dd id="paidPrincipal"></dd></div>
+                      <div><dt>已还利息</dt><dd id="paidInterest"></dd></div>
+                      <div class="repayment-total"><dt>已还本息合计</dt><dd id="paidTotal"></dd></div>
+                    </dl>
+                  </div>
+                  <div class="repayment-group remaining-group">
+                    <h4>还需归还</h4>
+                    <dl>
+                      <div><dt>待还本金</dt><dd id="remainingPrincipal"></dd></div>
+                      <div><dt>待还利息</dt><dd id="remainingInterest"></dd></div>
+                      <div class="repayment-total"><dt>待还本息合计</dt><dd id="remainingTotal"></dd></div>
+                    </dl>
+                  </div>
+                </div>
+              </div>
+              <p class="amount-hint">金额单位：元 · 鼠标移到金额上可查看万元</p>
+            </section>
             <div id="savingsBlock" class="savings-block" hidden>
               <div><span>少付利息</span><strong id="summarySavings"></strong></div>
               <div><span>缩短期限</span><strong id="summaryMonthsSaved"></strong></div>
