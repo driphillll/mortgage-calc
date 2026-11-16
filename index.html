@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f6f8f6">
+  <meta name="google-site-verification" content="bl6B72SwBpM7amusC_9FDO-TucyvQD1Z2F1rQvP4qkw" />
   <title>房贷计算器｜LPR 调息、多次提前还款与逐月明细</title>
-  <meta name="description" content="在线房贷计算器，支持等额本息、等额本金和贷款期限年月换算。可按年月设置 LPR 调息后的执行利率，添加多次提前还款，比较缩短期限或降低月供，查看逐月本金、利息、本息合计及节省利息。">
+  <meta name="description" content="在线房贷计算器，支持等额本息、等额本金、LPR 利率调整和多次提前还款，并提供计算公式、还款方式对比、实用示例与房贷常见问题说明。">
   <link rel="stylesheet" href="./styles.css">
   <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8447316258615508" crossorigin="anonymous"></script>
   <script type="module" src="./src/app.js"></script>
@@ -18,19 +19,6 @@
         <h1>房贷计算器</h1>
         <p>支持 LPR 调息、多次提前还款，查看逐月本金、利息和月供。</p>
       </div>
-      <aside class="header-ad" aria-label="广告">
-        <p class="ad-label">广告</p>
-        <!-- 房贷计算器-首页右上 -->
-        <ins class="adsbygoogle"
-             style="display:block"
-             data-ad-client="ca-pub-8447316258615508"
-             data-ad-slot="2850476222"
-             data-ad-format="horizontal"
-             data-full-width-responsive="true"></ins>
-        <script>
-          (window.adsbygoogle = window.adsbygoogle || []).push({});
-        </script>
-      </aside>
     </header>
 
     <main>
@@ -69,9 +57,10 @@
               <div class="field">
                 <label for="annualRate">初始年化利率 <span class="required-mark">*</span></label>
                 <div class="input-wrap">
-                  <input id="annualRate" name="annualRate" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="例如 3.5" required>
+                  <input id="annualRate" name="annualRate" type="number" inputmode="decimal" min="0" max="100" step="any" placeholder="例如 4.65" value="4.65" required>
                   <span class="input-suffix">%</span>
                 </div>
+                <small class="field-help">填写合同约定的实际执行年化利率；浮动利率通常包含 LPR 和合同加点。</small>
               </div>
 
               <fieldset class="field method-field">
@@ -139,7 +128,7 @@
             <span class="section-number">02</span>
             <div>
               <h2 id="resultTitle">计算结果</h2>
-              <p>根据输入生成逐月还款计划</p>
+              <p>填写贷款金额和期限后，查看月供、利息与逐月还款计划。</p>
             </div>
           </div>
 
@@ -151,7 +140,7 @@
 
           <div id="resultContent" hidden aria-live="polite">
             <div class="primary-result">
-              <span id="paymentLabel">每月月供</span>
+              <span id="paymentLabel">首期月供</span>
               <strong id="initialPayment"></strong>
               <small>首期正常还款金额，不含提前还款</small>
             </div>
@@ -164,7 +153,7 @@
             <section class="repayment-progress" aria-labelledby="progressTitle">
               <div class="progress-heading">
                 <h3 id="progressTitle">还款进度</h3>
-                <button id="resetPaidPeriods" class="text-button" type="button">按今天估算</button>
+                <button id="resetPaidPeriods" class="text-button" type="button" disabled>按今天估算</button>
               </div>
               <div class="progress-control field">
                 <label for="paidPeriods">已还期数</label>
@@ -222,6 +211,84 @@
             <tbody id="scheduleBody"></tbody>
           </table>
         </div>
+      </section>
+
+      <section class="card education-card" aria-labelledby="educationTitle">
+        <div class="section-heading">
+          <span id="educationNumber" class="section-number">03</span>
+          <div>
+            <h2 id="educationTitle">知识科普与计算说明</h2>
+            <p>了解月供如何计算、提前还款如何比较，以及利率变化如何进入还款计划。</p>
+          </div>
+        </div>
+
+        <p class="education-intro">本工具用于按你输入的贷款本金、期限、年化执行利率和还款安排估算还款计划。下面说明常见计算口径；银行最终扣款金额以贷款合同、重定价规则和账单为准。</p>
+
+        <div class="method-grid">
+          <article class="method-card">
+            <h3>等额本息</h3>
+            <p>在利率不变、没有提前还款时，每期月供相同；每期月供由本金和利息组成，前期利息占比通常较高，之后随剩余本金下降而逐渐降低。</p>
+            <p class="formula"><code>月供 = P × i × (1 + i)ⁿ ÷ ((1 + i)ⁿ − 1)</code></p>
+            <p class="formula"><code>总利息 = 月供 × n − P</code></p>
+          </article>
+          <article class="method-card">
+            <h3>等额本金</h3>
+            <p>每期归还相同金额的本金，利息按当期剩余本金计算，因此月供通常逐月下降。期限和利率相同时，前期月供较高，累计利息通常低于等额本息。</p>
+            <p class="formula"><code>每月本金 = P ÷ n</code></p>
+            <p class="formula"><code>当期月供 = 每月本金 + 当期剩余本金 × i</code></p>
+            <p class="formula"><code>总利息 ≈ P × i × (n + 1) ÷ 2</code></p>
+          </article>
+        </div>
+        <p class="formula-note">公式中，P 为贷款本金，i 为月利率（年化执行利率 ÷ 12），n 为剩余还款月数。年利率为 0 时，月供按本金 ÷ 期数计算。页面按月计息并逐期四舍五入到分，末期会调整尾差，因此结果可能与直接套用未舍入公式略有差异。</p>
+
+        <article class="guide-article">
+          <h3>提前还款：缩短年限还是降低月供？</h3>
+          <p>提前还款要把“减少利息”和“保持现金流”放在一起看。选择“缩短年限”时，本模型会先从剩余本金扣除提前还款，再尽量维持原月供（等额本金维持原月还本金），因此更快归还本金；在利率、金额和时点相同的情况下，通常比降低月供少付更多后续利息。选择“降低月供”则保留剩余期限，按提前还款后的本金重算较低月供，能立即减轻每月支出，但节省利息通常较少。收入稳定、应急资金充足且目标是减少总利息的人，可以先比较缩短年限后的计划；近期现金流压力较大的人，可以考虑降低月供。不要只看利息差额：还要确认银行的最低提前还款金额、预约要求、办理日期和违约金，并把费用与预计节省的利息比较。提前偿还也会占用现金，是否划算还取决于家庭备用金和资金的其他用途。页面给出的利息节省只按输入的还款计划估算，不包含违约金、手续费或未来利率变化。</p>
+        </article>
+
+        <article class="guide-article">
+          <h3>LPR 重定价日如何影响下一年月供？</h3>
+          <p>对采用浮动利率的贷款，LPR 公布变化不一定会让月供在当天改变；具体重定价日和周期要看贷款合同。到合同约定的重定价日，银行按适用的 LPR 和合同固定加点确定新的执行利率，再根据剩余本金、剩余期限和还款方式计算后续月供。使用本计算器时，应在利率调整中填写重定价后实际执行的年化利率（包含合同加点），并设置生效年月；不要把 LPR 基准值直接当作执行利率。计算器不会自动获取 LPR，也不判断你的合同重定价条款。</p>
+        </article>
+
+        <div class="example-block">
+          <h3>测算示例：商业贷款 100 万元、30 年、年利率 3.6%</h3>
+          <p>假设利率在整个期限内保持不变、没有提前还款及其他费用。3.6% 在此仅为演示用的年化执行利率；页面默认选择等额本息。</p>
+          <div class="table-scroll">
+            <table class="example-table">
+              <thead><tr><th scope="col">还款方式</th><th scope="col" class="numeric">首月月供</th><th scope="col" class="numeric">全期利息</th><th scope="col" class="numeric">本息合计</th></tr></thead>
+              <tbody>
+                <tr><td>等额本息</td><td class="numeric">¥ 4,546.45</td><td class="numeric">¥ 636,724.27</td><td class="numeric">¥ 1,636,724.27</td></tr>
+                <tr><td>等额本金</td><td class="numeric">¥ 5,777.78</td><td class="numeric">¥ 541,499.64</td><td class="numeric">¥ 1,541,499.64</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <p class="formula-note">示例按本页面逐月计算并四舍五入到分；实际银行结果可能因合同利率、计息日、重定价、费用和尾差处理而不同。可将示例参数手动填入上方计算器，再调整条件重新计算。</p>
+        </div>
+
+        <section class="faq-section" aria-labelledby="faqTitle">
+          <h3 id="faqTitle">房贷计算常见问题</h3>
+          <article class="faq-item">
+            <h4>商贷转公积金贷款需要满足什么条件？</h4>
+            <p>条件由当地住房公积金管理中心制定，可能涉及缴存年限、账户状态、原商贷还款记录、房屋及产权、可贷额度和是否存在其他公积金贷款等。各地差异较大，办理前应向当地公积金中心确认；本计算器不判断转贷资格。</p>
+          </article>
+          <article class="faq-item">
+            <h4>提前还款违约金怎么算？</h4>
+            <p>违约金、最低还款金额、预约期限和可办理时间以贷款合同及贷款机构当前规则为准，可能按剩余本金比例或约定方式计算。计算器不包含违约金；比较提前还款方案时，应把银行确认的费用与预计节省利息一并考虑。</p>
+          </article>
+          <article class="faq-item">
+            <h4>组合贷款的利率应该怎么填？</h4>
+            <p>公积金贷款和商业贷款通常各有本金、利率、期限及还款安排。可分别用本计算器测算两部分，再将对应月份的月供、利息和本息合计相加。本工具一次计算一笔贷款，不会自动拆分或合并组合贷。</p>
+          </article>
+          <article class="faq-item">
+            <h4>LPR 调整后，月供会马上变化吗？</h4>
+            <p>通常要按合同约定的重定价日和周期执行，不一定在 LPR 公布当天变化。请查看合同或向贷款机构确认生效时间，并在计算器中填写调整后的实际执行年化利率（含固定加点）及生效年月。</p>
+          </article>
+          <article class="faq-item">
+            <h4>为什么计算器结果和银行账单不完全一样？</h4>
+            <p>本工具采用月度计息并逐期按分舍入，不计算实际天数利息、手续费、违约金或银行的特殊重定价规则。合同约定的扣款日、利率生效日和尾差处理也可能造成差异；实际还款以贷款机构账单为准。</p>
+          </article>
+        </section>
       </section>
     </main>
     <aside class="ad-section" aria-label="广告">

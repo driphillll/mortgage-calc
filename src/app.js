@@ -17,6 +17,7 @@ const formError = document.querySelector('#formError');
 const emptyState = document.querySelector('#emptyState');
 const resultContent = document.querySelector('#resultContent');
 const scheduleSection = document.querySelector('#scheduleSection');
+const educationNumber = document.querySelector('#educationNumber');
 const scheduleBody = document.querySelector('#scheduleBody');
 const paidPeriods = document.querySelector('#paidPeriods');
 const resetPaidPeriods = document.querySelector('#resetPaidPeriods');
@@ -42,6 +43,7 @@ function invalidateResults() {
   currentResult = null;
   resultContent.hidden = true;
   scheduleSection.hidden = true;
+  educationNumber.textContent = '03';
   emptyState.hidden = false;
   clearError();
 }
@@ -266,6 +268,7 @@ function renderResult(input, result) {
   emptyState.hidden = true;
   resultContent.hidden = false;
   scheduleSection.hidden = false;
+  educationNumber.textContent = '04';
 }
 
 termUnit.addEventListener('change', () => {
@@ -314,6 +317,7 @@ form.addEventListener('submit', event => {
     currentResult = null;
     resultContent.hidden = true;
     scheduleSection.hidden = true;
+    educationNumber.textContent = '03';
     emptyState.hidden = false;
     showError(error.message);
   }
