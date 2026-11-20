@@ -149,6 +149,7 @@ curl -I https://dclyh.com/mortgage-calc/
 curl -I https://dclyh.com/mortgage-calc/styles.css
 curl -I https://dclyh.com/mortgage-calc/src/app.js
 curl -I https://dclyh.com/mortgage-calc/src/calculator.js
+curl -I https://dclyh.com/mortgage-calc/sitemap.xml
 curl -I https://dclyh.com/ads.txt
 curl -I http://dclyh.com/mortgage-calc/
 curl --fail http://dclyh.com/.well-known/acme-challenge/probe.txt

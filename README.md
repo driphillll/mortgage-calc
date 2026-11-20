@@ -24,7 +24,7 @@ npm test
 
 主页已接入一个 Google AdSense 自适应展示广告，位于计算器、知识说明和常见问题之后、页脚之前。发布商 ID 为 `ca-pub-8447316258615508`，广告位 ID 为 `9387040978`。广告脚本异步加载且只加载一次；计算器使用本地计算模块。贷款金额和期限默认留空，年化执行利率预填 4.65%；页面正文另有独立的示例测算。
 
-部署时将 `index.html`、`styles.css` 和 `src/` 下的两个 JavaScript 文件按原目录结构上传到 `/data/mortgage-calc/`，将 `ads.txt` 上传到 `/var/www/html/ads.txt`（对应本项目的 Nginx 配置）。确认 `https://dclyh.com/ads.txt` 可以访问，并在 AdSense 后台完成网站验证和审核。完整步骤见 [AdSense 接入说明](docs/adsense-setup.md)。
+部署时将 `index.html`、`styles.css`、`sitemap.xml` 和 `src/` 下的两个 JavaScript 文件按原目录结构上传到 `/data/mortgage-calc/`，将 `ads.txt` 上传到 `/var/www/html/ads.txt`（对应本项目的 Nginx 配置）。确认 `https://dclyh.com/ads.txt` 和 `https://dclyh.com/mortgage-calc/sitemap.xml` 可以访问；在 Google Search Console 中提交 `https://dclyh.com/mortgage-calc/sitemap.xml`，不要提交计算器目录本身。
 
 ## HTTPS 部署
 
